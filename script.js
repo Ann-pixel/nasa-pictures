@@ -12,6 +12,18 @@ const apiUrl = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}&count=${co
 let resultsArray = [];
 let favorites = {};
 
+function showContent(page) {
+  window.scrollTo({ top: 0, behavior: "instant" });
+  if (page === "results") {
+    resultsNav.classList.remove("hidden");
+    favoritesNav.classList.add("hidden");
+  } else {
+    resultsNav.classList.add("hidden");
+    favoritesNav.classList.remove("hidden");
+  }
+  loader.classList.add("hidden");
+}
+
 function createDOMNodes(page) {
   const currentArray =
     page === "results" ? resultsArray : Object.values(favorites);
@@ -36,8 +48,10 @@ function createDOMNodes(page) {
     const saveText = document.createElement("p");
     saveText.classList.add("clickable");
     saveText.textContent =
-      page === "results" ? "Add to Favorites" : "Remove Favorites";
-    saveText.setAttribute("onClick", `removeFavorite('${result.url}')`);
+      page === "results" ? "Add to Favorites" : "Remove Favorite";
+    const funcForSaveOrRem =
+      page === "results" ? "saveFavorite" : "removeFavorite";
+    saveText.setAttribute("onClick", `${funcForSaveOrRem}('${result.url}')`);
     const cardText = document.createElement("p");
     cardText.textContent = result.explanation;
     const footer = document.createElement("small");
@@ -61,6 +75,7 @@ function updateDom(page) {
   }
   imagesContainer.textContent = "";
   createDOMNodes(page);
+  showContent(page);
 }
 
 function saveFavorite(itemUrl) {
@@ -86,11 +101,12 @@ function removeFavorite(itemUrl) {
   }
 }
 async function getNasaPictures() {
+  loader.classList.remove("hidden");
   try {
     const res = await fetch(apiUrl);
     resultsArray = await res.json();
 
-    updateDom("favorites");
+    updateDom("results");
   } catch (err) {
     console.log(err);
   }
